@@ -1,12 +1,11 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+/*
+入口js文件
+ */
 
-ReactDOM.render(<App />, document.getElementById('root'));
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './App'
+//import 'antd/dist/antd.css'  在config-overrides配置实现按需打包，不需要引入全部的css文件
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+//将APP组件标签渲染到index页面的id为root的div上面
+ReactDOM.render(<App/>,document.getElementById('root'));
