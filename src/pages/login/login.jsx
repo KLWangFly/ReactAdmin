@@ -1,16 +1,44 @@
 import React, {Component} from 'react'
+import {Redirect} from 'react-router-dom'
 import './login.less'
-import logo from './images/logo.png'
-import {Form, Icon, Input, Button} from 'antd';
+import logo from '../../asserts/images/logo.png'
+import {Form, Icon, Input, Button,message} from 'antd';
+import {reqLogin} from '../../api'
+import memoryUtils from '../../utils/memoryUtils'
+import storageUtils from '../../utils/storageUtils'
 
 class Login extends Component {
 
     handleSubmit=(event)=>{
         event.preventDefault();
         //from 的统一验证，对表单中所有数据进行验证，也可以指定相关字段验证
-        this.props.form.validateFields(/*['username','password'],*/(err, values) => {
+        this.props.form.validateFields(/*['username','password'],*/async (err, values) => {
             if (!err) {
-                console.log('提交登录的ajax请求 ', values);
+                const {username,password}=values;
+              /*  reqLogin(username,password).then(response=>{
+                    console.log("请求成功！",response.data)
+                }).catch(error=>{
+                    console.log('请求失败',error.message)
+                })*/
+              //此处要简化promise对象的使用:不再使用then()来指定成功/失败的回调，使用async和await
+              //   try{   统一封装了异常处理信息，不需要每个请求try catch处理了
+                    let result=await reqLogin(username,password);
+                    //console.log("请求成功！",response.data)
+                    if(result.status===0){
+                        //提示登陆成功
+                        message.success("登陆成功");
+                        // 保存用户登录信息
+                        memoryUtils.user=result.data;
+                        //保存到local中
+                        storageUtils.saveUser(result.data)
+                        //跳转到Admin主页
+                        this.props.history.replace('/')
+                    }else{
+                        message.error(result.msg)
+                    }
+                // }catch (error) {
+                //     console.log('请求失败',error.message)
+                // }
             }else{
                 console.log('检验失败',values)
             }
@@ -34,6 +62,10 @@ class Login extends Component {
     };
 
     render() {
+        const user=memoryUtils.user;
+        if(user&&user._id){
+            return <Redirect to='/'/>
+        }
         const {getFieldDecorator} = this.props.form;
         return (
             <div className='login'>
@@ -66,8 +98,13 @@ class Login extends Component {
                             }
                         </Form.Item>
                         <Form.Item>
-                            {getFieldDecorator('password',{rules:[{validator:this.validatorPwd}]})
-                              (<Input
+                            {
+                                getFieldDecorator('password',
+                                 {rules:
+                                            [
+                                                {validator:this.validatorPwd}
+                                            ]
+                                 })(<Input
                                 prefix={<Icon type="lock" style={{color: 'rgba(0,0,0,.25)'}}/>}
                                 type="password"
                                 placeholder="密码 "
